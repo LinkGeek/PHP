@@ -17,13 +17,17 @@ if ($socket === false) {
 
 $ret = socket_bind($socket, $ip, $port);
 if ($ret === false) {
-    echo "socket_bind() failed: " . socket_strerror(socket_last_error($socket))."\n";
+    echo "socket_bind() failed: " . socket_strerror(socket_last_error())."\n";
 }
 
 while (true) {
-    $from = "";
-    $port = 0;
-    socket_recvfrom($socket, $buf,1024, 0, $from,$port);
-    echo "received: $buf from remote address $from and remote port $port" . PHP_EOL;
-    usleep(1000);
+    $remote_ip = "";
+    $remote_port = 0;
+    // receive
+    socket_recvfrom($socket, $buf,1024, 0, $remote_ip,$remote_port);
+    echo "received: $buf from remote address $remote_ip and remote port $remote_port" . PHP_EOL;
+
+    // send back
+    socket_sendto($socket, "OK " . $buf, 100, 0, $remote_ip, $remote_port);
 }
+socket_close($socket);
