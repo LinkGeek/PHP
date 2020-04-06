@@ -25,7 +25,7 @@ while (true) {
     $remote_port = 0;
     // receive
     socket_recvfrom($socket, $buf,1024, 0, $remote_ip,$remote_port);
-    echo "received: $buf from remote address $remote_ip and remote port $remote_port" . PHP_EOL;
+    echo "received: $buf from remote address $remote_ip and remote port $remote_port\n";
 
     // send back
     socket_sendto($socket, "OK " . $buf, 100, 0, $remote_ip, $remote_port);
