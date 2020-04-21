@@ -8,54 +8,55 @@
 set_time_limit(0);
 
 // ip、端口
-$ip = "192.168.7.105";
-$port = 28300;
+//$ip = "192.168.7.105";
+$ip = "127.0.0.1";
+$port = 8080;
 
-/**
- * 创建一个SOCKET
- * domain 参数指定哪个协议用在当前套接字上
- * AF_INET是ipv4网络协议 如果用ipv6，则参数为 AF_INET6
- * type 参数用于选择套接字使用的类型
- * SOCK_STREAM为socket的tcp类型，如果是UDP则使用SOCK_DGRAM
- * protocol 参数，是设置指定 domain 套接字下的具体协议
- */
-$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-if ($socket === false) {
-    echo "socket_create() failed.\nReason: " . socket_strerror(socket_last_error()) . "\n";
-}
+    /**
+     * 创建一个SOCKET
+     * domain 参数指定哪个协议用在当前套接字上
+     * AF_INET是ipv4网络协议 如果用ipv6，则参数为 AF_INET6
+     * type 参数用于选择套接字使用的类型
+     * SOCK_STREAM为socket的tcp类型，如果是UDP则使用SOCK_DGRAM
+     * protocol 参数，是设置指定 domain 套接字下的具体协议
+     */
+    $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+    if ($socket === false) {
+        echo "socket_create() failed.\nReason: " . socket_strerror(socket_last_error()) . "\n";
+    }
 
 // 绑定接收的套接流主机和端口,与客户端相对应
-$ret = socket_bind($socket, $ip, $port);
-if (!$ret) {
-    echo "socket_bind() failed.\nReason: " . socket_strerror(socket_last_error()) . "\n";
-}
+    $ret = socket_bind($socket, $ip, $port);
+    if (!$ret) {
+        echo "socket_bind() failed.\nReason: " . socket_strerror(socket_last_error()) . "\n";
+    }
 
 // 监听套接流
-$ret = socket_listen($socket);
-if (!$ret) {
-    echo "socket_listen() failed.\nReason: " . socket_strerror(socket_last_error()) . "\n";
-}
+    $ret = socket_listen($socket);
+    if (!$ret) {
+        echo "socket_listen() failed.\nReason: " . socket_strerror(socket_last_error()) . "\n";
+    }
 
 // 让服务器无限获取客户端传过来的信息
-do {
-    // 接收客户端传过来的信息
-    $acpSocket = socket_accept($socket);
-    if ($acpSocket === false) {
-        echo "socket_accept() failed.\nReason: " . socket_strerror(socket_last_error()) . "\n";
-        break;
-    }
+    do {
+        // 接收客户端传过来的信息
+        $acpSocket = socket_accept($socket);
+        if ($acpSocket === false) {
+            echo "socket_accept() failed.\nReason: " . socket_strerror(socket_last_error()) . "\n";
+            break;
+        }
 
-    // 读取套接字的资源信息，并转化为字符串 length: 读取字符串的长度
-    $buf = socket_read($acpSocket,1024);
-    echo "receive from client: $buf\n";
+        // 读取套接字的资源信息，并转化为字符串 length: 读取字符串的长度
+        $buf = socket_read($acpSocket,1024);
+        echo "receive from client: $buf\n";
 
-    if ($buf != false) {
-        // 回复客户端
-        $sendMsg = "hello client, I have received your msg";
-        socket_write($acpSocket, $sendMsg, strlen($sendMsg));
-    } else {
-        echo "socket_read failed.\n";
-    }
+        if ($buf != false) {
+            // 回复客户端
+            $sendMsg = "hello client, I have received your msg";
+            socket_write($acpSocket, $sendMsg, strlen($sendMsg));
+        } else {
+            echo "socket_read failed.\n";
+        }
 
     // socket_close的作用是关闭socket_create()或者socket_accept()所建立的套接流
     socket_close($acpSocket);
