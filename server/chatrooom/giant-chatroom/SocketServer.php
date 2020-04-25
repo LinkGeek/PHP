@@ -41,53 +41,63 @@ class SocketServer {
     public function start()
     {
         while (true) {
-            $write = $except = null;
-            $sockets = array_column($this->_socketPool, 'resource');
-            $read_num = socket_select($sockets, $write, $except, 3600);
-            if ($read_num === false) {
-                $errorCode = socket_last_error();
-                $errorMsg = socket_strerror($errorCode);
-                $this->debugLog(["socket_select error", $errorCode, $errorMsg]);
-                return;
+            try {
+                $this->run();
+            } catch (Exception $e) {
+                $this->debugLog(["code: " . $e->getCode() . ", msg: " . $e->getMessage()]);
             }
+        }
+    }
 
-            foreach ($sockets as $socket) {
-                // 如果是当前服务器的监听连接
-                if ($socket == $this->_socket) {
-                    $client = socket_accept($this->_socket);
-                    if ($client === false) {
-                        $errorCode = socket_last_error();
-                        $errorMsg = socket_strerror($errorCode);
-                        $this->debugLog(["socket_accept_error", $errorCode, $errorMsg]);
-                        continue;
-                    }
-                    // 添加客户端套接字
-                    $this->addConnect($this->_socket);
-                } else {
-                    // 获取客户端发送来的信息
-                    $bytes = @socket_recv($socket, $buf, 2048, 0);
-                    if ($bytes == 0) {
-                        $recv_msg = $this->disConnect($socket);
-                    } elseif ($this->_socketPool[(int)$socket]['handShake'] === false) {
-                        $this->createHandShake($socket, $buf);
-                        continue;
-                    } else {
-                        $recv_msg = $this->decodeMsg($buf);
-                    }
-                    $send_msg = $this->doEvents($socket, $recv_msg);
+    private function run()
+    {
+        $write = $except = null;
+        $sockets = array_column($this->_socketPool, 'resource');
+        // 阻塞，直到捕获到变化
+        $read_num = socket_select($sockets, $write, $except, 3600);
+        if ($read_num === false) {
+            $errorCode = socket_last_error();
+            $errorMsg = socket_strerror($errorCode);
+            $this->debugLog(["socket_select error", $errorCode, $errorMsg]);
+            return;
+        }
 
-                    socket_getpeername($socket, $address, $port);
-                    $this->debugLog(['send success', json_encode($recv_msg), $address, $port]);
-
-                    // 广播
-                    $this->send_to_other($send_msg);
+        foreach ($sockets as $socket) {
+            // 如果是当前服务器的监听连接
+            if ($socket == $this->_socket) {
+                $client = socket_accept($this->_socket);
+                if ($client === false) {
+                    $errorCode = socket_last_error();
+                    $errorMsg = socket_strerror($errorCode);
+                    $this->debugLog(["socket_accept_error", $errorCode, $errorMsg]);
+                    continue;
                 }
+                // 添加客户端套接字
+                $this->addConnect($client);
+            } else {
+                // 获取客户端发送来的信息
+                $bytes = @socket_recv($socket, $buf, 2048, 0);
+                if ($bytes == 0) {
+                    $recv_msg = $this->disConnect($socket);
+                } elseif ($this->_socketPool[(int)$socket]['handShake'] == false) {
+                    $this->createHandShake($socket, $buf);
+                    continue;
+                } else {
+                    $recv_msg = $this->decodeMsg($buf);
+                }
+
+                $send_msg = $this->doEvents($socket, $recv_msg);
+                socket_getpeername($socket, $address, $port);
+                $this->debugLog(['send success', json_encode($recv_msg), $address, $port]);
+
+                // 广播
+                $this->send_to_other($send_msg);
             }
         }
     }
 
     /**
-     * 广播至除发送消息外的客户端
+     * 广播至除发送方外的客户端
      * @param $msg
      */
     private function send_to_other($msg)
@@ -119,12 +129,10 @@ class SocketServer {
                     'login_time' => date('h:i')
                 ];
                 $this->_socketPool[(int)$socket]['userInfo'] = $userInfo;
-                $users = array_column($this->_socketPool, 'userInfo');
-                $resp['users'] = $users;
+                $resp['users'] = array_column($this->_socketPool, 'userInfo');$users;
                 break;
             case 'logout':
-                $users = array_column($this->_socketPool, 'userInfo');
-                $resp['users'] = $users;
+                $resp['users'] = array_column($this->_socketPool, 'userInfo');
                 break;
             case 'user':
                 $userInfo = $this->_socketPool[(int)$socket]['userInfo'];
@@ -189,12 +197,12 @@ class SocketServer {
      */
     public function disConnect($socket)
     {
-        $info = [
+        $msg = [
             'type' => 'logout',
-            'msg' => $this->_socketPool[(int)$socket]['userInfo']['name']
+            'msg' => @$this->_socketPool[(int)$socket]['userInfo']['name']
         ];
         unset($this->_socketPool[(int)$socket]);
-        return $info;
+        return $msg;
     }
 
     /**
@@ -209,9 +217,9 @@ class SocketServer {
     }
 
     /**
-     * 发送编码
+     * 编码发送信息
      */
-    private function encodeMsg($msg)
+    private function encodeMsg0($msg)
     {
         $head = str_split($msg, 125);
         if (count($head) == 1){
@@ -225,13 +233,42 @@ class SocketServer {
     }
 
     /**
+     * 帧数据封装
+     * @param $msg
+     * @return string
+     */
+    private function encodeMsg($msg)
+    {
+        $frame = [];
+        $frame[0] = '81';
+        $len = strlen($msg);
+        if ($len < 126) {
+            $frame[1] = $len < 16 ? '0' . dechex($len) : dechex($len);
+        } else if ($len < 65025) {
+            $s = dechex($len);
+            $frame[1] = '7e' . str_repeat('0', 4 - strlen($s)) . $s;
+        } else {
+            $s = dechex($len);
+            $frame[1] = '7f' . str_repeat('0', 16 - strlen($s)) . $s;
+        }
+        $data = '';
+        $l = strlen($msg);
+        for ($i = 0; $i < $l; $i++) {
+            $data .= dechex(ord($msg{$i}));
+        }
+        $frame[2] = $data;
+        $data = implode('', $frame);
+        return pack("H*", $data);
+    }
+
+    /**
      * 解码客户端发送过来的信息
      * @param $buffer 客户端传来的信息
      * @return string|null 解码后的字符串
      */
     private function decodeMsg($buffer)
     {
-        $decoded = null;
+        $decoded = '';
         $len = ord($buffer[1]) & 127;
         if ($len === 126) {
             $masks = substr($buffer, 4, 4);
@@ -246,7 +283,9 @@ class SocketServer {
         for ($index = 0; $index < strlen($data); $index++) {
             $decoded .= $data[$index] ^ $masks[$index % 4];
         }
-        return $decoded;
+
+        return json_decode($decoded, true);
+        // return $decoded;
     }
 
     /**

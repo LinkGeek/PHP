@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>史上最丑聊天室</title>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" rel="stylesheet">
     <link rel="stylesheet" href="public/css/reset.css">
     <link rel="stylesheet" href="public/css/style.css">
     <link rel="stylesheet" href="public/lib/layer/theme/default/layer.css">
@@ -25,7 +27,7 @@
                 </div>
                 <div class="write">
                     <a href="javascript:;" class="write-link attach"></a>
-                    <input type="text" id="input-value" onkeydown="confirm(event)"/>
+                    <input type="text" id="input-value" placeholder="请输入聊天内容..." onkeydown="confirm(event)"/>
                     <a href="javascript:;" class="write-link smiley"></a>
                     <a href="javascript:;" class="write-link send" onclick="send()"></a>
                 </div>
@@ -57,7 +59,7 @@
     let ws = null;
     connect();
     function connect() {
-        ws = new WebSocket("ws://127.0.0.1:8080");
+        ws = new WebSocket("ws://127.0.0.1:8080/");
         ws.onopen = onopen;
         ws.onmessage = onmessage;
         ws.onclose = onclose;
@@ -75,7 +77,7 @@
         console.log(data);
         switch (data.type) {
             case 'handShake':
-                //发送用户登录
+                // 发送用户登录
                 let userInfo = {'type': 'login', 'msg': uname, 'image': headImg};
                 sendMsg(userInfo);
                 break;
@@ -115,7 +117,7 @@
         for (let i = 0; i < users.length; i++) {
             html += `<li class="person" data-chat="person1">
                     <img src="` + users[i].image + `" alt=""/>
-                    <span class="name">` + users[i].username + `</span>
+                    <span class="name">` + users[i].name + `</span>
                     <span class="time">` + users[i].login_time + `</span>
                     <span class="preview" style="color: green;font-size: 7px;">在线</span>
                 </li>`;
@@ -161,7 +163,7 @@
         document.querySelector("input#input-value").value = "";
     }
 
-    // 回车
+    // 回车发送
     function confirm(event) {
         let key_num = event.keyCode;
         if (13 == key_num) {

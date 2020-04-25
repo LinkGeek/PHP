@@ -1,5 +1,5 @@
 <?php
 
 require ('SocketServer.php');
-$socket = new SocketServer();
+$socket = new socketServer();
 $socket->start();
