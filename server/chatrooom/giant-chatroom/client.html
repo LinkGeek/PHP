@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>史上最丑聊天室</title>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" rel="stylesheet">
+    <link rel="stylesheet" href="public/css/reset.css">
+    <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/lib/layer/theme/default/layer.css">
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="left">
+                <div class="top" style="padding: 20px 29px;height: auto;">
+                    <div class="" style="font: 400 13.3333px Arial;font-weight: 400;">在线人数：<span id="numbers">0</span> 人
+                    </div>
+                </div>
+                <ul class="people">
+                </ul>
+            </div>
+            <div class="right">
+                <div class="top">加藤非之聊天室</div>
+                <div class="chat active-chat" data-chat="person1"
+                     style="height: auto;border-width: 0px;padding: 10px;height: 483px; padding: 10px;overflow-y: auto;scrollTop: 100px">
+                </div>
+                <div class="write">
+                    <a href="javascript:;" class="write-link attach"></a>
+                    <input type="text" id="input-value" placeholder="请输入聊天内容..." onkeydown="confirm(event)"/>
+                    <a href="javascript:;" class="write-link smiley"></a>
+                    <a href="javascript:;" class="write-link send" onclick="send()"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src="public/js/jquery-2.1.1.min.js"></script>
+<script src="public/js/index.js"></script>
+<script src="public/lib/layer/layer.js"></script>
+<script>
+    let uname = "user" + initUid(6, 11);
+    layer.open({
+        title: '您的用户名：',
+        content: uname,
+        closeBtn: 0,
+        yes: function (index) {
+            layer.close(index);
+        }
+    });
+
+    let avatar = ['a1.jpg', 'a2.jpg', 'a3.jpg', 'a4.jpg', 'a5.jpg', 'a6.jpg', 'a7.jpg', 'a8.jpg', 'a9.jpg', 'a10.jpg'];
+    let headImg = "public/img/" + avatar[0];
+    if (avatar[Math.round(Math.random() * 10)]) {
+        headImg = "public/img/" + avatar[Math.round(Math.random() * 10)];
+    }
+
+    let ws = null;
+    connect();
+    function connect() {
+        ws = new WebSocket("ws://127.0.0.1:8080/");
+        ws.onopen = onopen;
+        ws.onmessage = onmessage;
+        ws.onclose = onclose;
+        ws.onerror = onerror;
+    }
+
+    // 创建成功事件
+    function onopen() {
+        console.log("握手成功，打开socket连接了。。。");
+    }
+
+    // 接收到消息事件
+    function onmessage(e) {
+        let data = JSON.parse(e.data);
+        console.log(data);
+        switch (data.type) {
+            case 'handShake':
+                // 发送用户登录
+                let userInfo = {'type': 'login', 'msg': uname, 'image': headImg};
+                sendMsg(userInfo);
+                break;
+            case 'login':
+                userList(data.users);
+                sysMessage('系统消息: ' + data.msg + ' 已上线');
+                break;
+            case 'logout':
+                userList(data.users);
+                if (data.msg.length > 0) {
+                    sysMessage('系统消息: ' + data.msg + ' 已下线');
+                }
+                break;
+            case 'user':
+                messageList(data);
+                break;
+        }
+    }
+
+    function onclose() {
+        console.log("断开socket连接了。。。");
+    }
+
+    // 错误事件
+    function onerror(e) {
+        console.log("ERROR:" + e.data);
+    }
+
+    function sendMsg(msg) {
+        let data = JSON.stringify(msg);
+        ws.send(data);
+    }
+
+    // 用户列表
+    function userList(users) {
+        let html = '';
+        for (let i = 0; i < users.length; i++) {
+            html += `<li class="person" data-chat="person1">
+                    <img src="` + users[i].image + `" alt=""/>
+                    <span class="name">` + users[i].name + `</span>
+                    <span class="time">` + users[i].login_time + `</span>
+                    <span class="preview" style="color: green;font-size: 7px;">在线</span>
+                </li>`;
+        }
+        document.querySelector('ul.people').innerHTML = html;
+        document.querySelector('span#numbers').innerHTML = users.length;
+    }
+
+    // 通知
+    function sysMessage(msg) {
+        let html = `<div class="conversation-start"><span>` + msg + `</span></div>`;
+        let active_chat = document.querySelector('div.active-chat');
+        let oldHtml = active_chat.innerHTML;
+        active_chat.innerHTML = oldHtml + html;
+        active_chat.scrollTop = active_chat.scrollHeight;
+    }
+
+    function messageList(data) {
+        let html = '';
+        if (data.from == uname) {
+            html = `<div class="message">
+                    <img class="me-header" src="` + data.image + `" alt=""/>
+                    <div class="bubble me">` + data.msg + `</div>
+                </div>`;
+        } else {
+            html = `<div class="message">
+                    <img src="` + data.image + `" alt=""/>
+                    <div class="bubble you">` + data.msg + `</div>
+                </div>`;
+        }
+        let active_chat = document.querySelector('div.active-chat');
+        let oldHtml = active_chat.innerHTML;
+        active_chat.innerHTML = oldHtml + html;
+        active_chat.scrollTop = active_chat.scrollHeight;
+    }
+
+    // 点击发送
+    function send() {
+        let msg = document.querySelector("input#input-value").value;
+        let reg = new RegExp("\r\n", "g");
+        msg = msg.replace(reg, "");
+        sendMsg({type: "user", msg: msg});
+        document.querySelector("input#input-value").value = "";
+    }
+
+    // 回车发送
+    function confirm(event) {
+        let key_num = event.keyCode;
+        if (13 == key_num) {
+            send();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 模拟用户名
+     * @param len
+     * @param radix
+     * @returns {string}
+     */
+    function initUid(len, radix) {
+        let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
+        let uuid = [], i;
+        radix = radix || chars.length;
+        if (len) {
+            for (i = 0; i < len; i++) uuid[i] = chars[0 | Math.random() * radix];
+        } else {
+            let r;
+            uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
+            uuid[14] = '4';
+            for (i = 0; i < 36; i++) {
+                if (!uuid[i]) {
+                    r = 0 | Math.random() * 16;
+                    uuid[i] = chars[(i == 19) ? (r & 0x3) | 0x8 : r];
+                }
+            }
+        }
+        return uuid.join('');
+    }
+</script>
+</html>

@@ -27,8 +27,9 @@ function sendSocketMsg($host, $port, $str, $back=0){
 }
 
 // ip、端口
-$host = "192.168.7.105";
-$port = 28300;
+//$host = "192.168.7.105";
+$host = "127.0.0.1";
+$port = 8080;
 $str = "hello server, this is client, can you hear me?";
 $result = sendSocketMsg($host, $port, $str, 1);
 var_dump($result);

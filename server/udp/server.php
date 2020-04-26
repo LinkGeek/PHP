@@ -2,6 +2,7 @@
 
 /**
  * udp 服务端
+ * sendto()和 recvfrom()用于在无连接的数据报socket方式下进行数据传输
  */
 
 set_time_limit(0);
@@ -21,13 +22,18 @@ if ($ret === false) {
 }
 
 while (true) {
+    // 接收地址信息
     $remote_ip = "";
     $remote_port = 0;
     // receive
     socket_recvfrom($socket, $buf,1024, 0, $remote_ip,$remote_port);
-    echo "received: $buf from remote address $remote_ip and remote port $remote_port" . PHP_EOL;
+    echo "received: $buf from remote address $remote_ip and remote port $remote_port\n";
 
     // send back
+<<<<<<< HEAD
     socket_sendto($socket, "OK!" . $buf, 100, 0, $remote_ip, $remote_port);
+=======
+    socket_sendto($socket, "OK", 100, 0, $remote_ip, $remote_port);
+>>>>>>> 0ab3472048187ba738756f425abfe570b10abff9
 }
 socket_close($socket);
