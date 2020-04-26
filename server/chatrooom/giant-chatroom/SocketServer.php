@@ -9,7 +9,7 @@ class SocketServer {
     private $_socketPool = [];
     const LISTEN_SOCKET_NUM = 9; // 最大连接数
     const LOG_PATH = './log/';
-    private $encrypt_key = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'; //websocket协议中用于加密的字符串
+    private $encrypt_key = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'; // 加密的字符串
 
     public function __construct()
     {
@@ -23,7 +23,7 @@ class SocketServer {
     {
         try {
             $this->_socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-            // 设置IP和port重用，在重启服务器后能重新使用此端口;
+            // 设置ip和port重用，在重启服务器后能重新使用此端口
             socket_set_option($this->_socket, SOL_SOCKET, SO_REUSEADDR, 1);
             socket_bind($this->_socket, $this->_ip, $this->_port);
             socket_listen($this->_socket, self::LISTEN_SOCKET_NUM);
@@ -129,7 +129,7 @@ class SocketServer {
                     'login_time' => date('h:i')
                 ];
                 $this->_socketPool[(int)$socket]['userInfo'] = $userInfo;
-                $resp['users'] = array_column($this->_socketPool, 'userInfo');$users;
+                $resp['users'] = array_column($this->_socketPool, 'userInfo');
                 break;
             case 'logout':
                 $resp['users'] = array_column($this->_socketPool, 'userInfo');
@@ -183,11 +183,11 @@ class SocketServer {
             'resource' => $client,
             'ip' => $address,
             'port' => $port,
-            'userInfo' => '',
-            'handShake' => 'false'
+            'userInfo' => [],
+            'handShake' => false
         ];
         $this->_socketPool[intval($client)] = $info;
-        $this->debugLog(['add connect', $info]);
+        $this->debugLog(['add connect', json_encode($info)]);
     }
 
     /**
