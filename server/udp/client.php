@@ -16,6 +16,6 @@ $result = socket_recv($socket, $reply, 1024, MSG_WAITALL);
 if ($result === FALSE) {
     echo "socket_recv() failed.\nreason: " . socket_strerror(socket_last_error()) . "\n";
 } else {
-    echo "Read $reply bytes from socket_recv(). Closing socket...";
+    echo "read $reply bytes from socket_recv(). Closing socket...";
 }
 socket_close($socket);

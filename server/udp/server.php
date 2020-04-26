@@ -28,6 +28,6 @@ while (true) {
     echo "received: $buf from remote address $remote_ip and remote port $remote_port" . PHP_EOL;
 
     // send back
-    socket_sendto($socket, "OK " . $buf, 100, 0, $remote_ip, $remote_port);
+    socket_sendto($socket, "OK!" . $buf, 100, 0, $remote_ip, $remote_port);
 }
 socket_close($socket);
