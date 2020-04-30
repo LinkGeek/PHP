@@ -12,16 +12,16 @@
 <div class="wrapper">
     <div class="container">
         <div class="left">
-            <div class="top" style="padding: 15px 29px;">
-                <div class="" style="font-weight: 400;">在线人数：<span id="numbers">0</span> 人</div>
+            <div class="top">
+                <div>在线人数：<span id="onlineUsers">0</span> 人</div>
             </div>
-            <ul class="people"></ul>
+            <div class="userList">
+                <ul class="people"></ul>
+            </div>
         </div>
         <div class="right">
-            <div class="top">加藤非之聊天室</div>
-            <div class="chat active-chat" data-chat="person1"
-                 style="height: auto;border-width: 0px;padding: 10px;height: 483px; padding: 10px;overflow-y: auto;scrollTop: 100px">
-            </div>
+            <div class="top">websocket聊天室</div>
+            <div class="chat active-chat" data-chat="person1"></div>
             <div class="write">
                 <input type="text" id="cont" placeholder="请输入聊天内容..." onkeydown="confirm(event)"/>
                 <a href="javascript:;" class="write-link send" onclick="send()"></a>
@@ -34,16 +34,16 @@
 <script src="public/js/index.js"></script>
 <script src="public/lib/layer/layer.js"></script>
 <script>
-    let uname = "user" + initUid(6);
+    let uname = "user" + initUid(6, 10);
 
-    /*layer.open({
+    layer.open({
         title: '您的用户名：',
         content: uname,
         closeBtn: 0,
         yes: function (index) {
             layer.close(index);
         }
-    });*/
+    });
 
     let avatar = ['a1.jpg', 'a2.jpg', 'a3.jpg', 'a4.jpg', 'a5.jpg'];
     let headImg = "public/img/" + avatar[0];
@@ -52,7 +52,7 @@
     }
 
     let ws = null;
-    // connect();
+    connect();
     function connect() {
         ws = new WebSocket("ws://127.0.0.1:8080/");
         ws.onopen = onopen;
@@ -117,13 +117,13 @@
                     <span class="preview" style="color: green;font-size: 7px;">在线</span>
                 </li>`;
         }
-        document.querySelector('ul.people').innerHTML = html;
-        document.querySelector('span#numbers').innerHTML = users.length;
+        $('ul.people').html(html);
+        $('#onlineUsers').text(users.length);
     }
 
     // 渲染系统通知
     function sysMessage(msg) {
-        let html = `<div class="conversation-start"><span>` + msg + `</span></div>`;
+        let html = `<div class="conversation-start"><span> ` + msg + ` </span></div>`;
         let active_chat = document.querySelector('div.active-chat');
         let oldHtml = active_chat.innerHTML;
         active_chat.innerHTML = oldHtml + html;
@@ -151,6 +151,7 @@
     }
 
     // 点击发送事件
+    $("#cont").focus();
     function send() {
         let msg = $("#cont").val();
         let reg = new RegExp("\r\n", "g");

@@ -1,5 +1,5 @@
-document.querySelector('.chat[data-chat=person2]').classList.add('active-chat');
-document.querySelector('.person[data-chat=person2]').classList.add('active');
+document.querySelector('.chat[data-chat=person1]').classList.add('active-chat');
+document.querySelector('.person[data-chat=person1]').classList.add('active');
 
 var users = {
   list: document.querySelector('ul.people'),

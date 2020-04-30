@@ -77,16 +77,19 @@ class SocketServer {
             } else {
                 // 获取客户端发送来的信息
                 $bytes = @socket_recv($socket, $buf, 2048, 0);
-                if ($bytes == 0) {
+                if ($bytes == false) {
+                    continue;
+                } elseif ($bytes === 0) { // 客户端关闭
                     $recv_msg = $this->disConnect($socket);
                 } elseif ($this->_socketPool[(int)$socket]['handShake'] == false) {
                     $this->createHandShake($socket, $buf);
                     continue;
-                } else {
+                } else { // 已经握手，处理数据
                     $recv_msg = $this->decodeMsg($buf);
                 }
 
                 $send_msg = $this->doEvents($socket, $recv_msg);
+                // 获取client ip port
                 socket_getpeername($socket, $address, $port);
                 $this->debugLog(['send success', json_encode($recv_msg), $address, $port]);
 
@@ -152,11 +155,12 @@ class SocketServer {
     public function createHandShake($socket, $buf)
     {
         $acceptKey = $this->encrypt($buf);
-        // 结尾一定要两个\r\n\r\n
+        // 每一个请求和相应的格式，最后有一个空行，也就是 \r\n
         $upgrade  = "HTTP/1.1 101 Switching Protocol\r\n" .
             "Upgrade: websocket\r\n" .
             "Connection: Upgrade\r\n" .
-            "Sec-WebSocket-Accept: " . $acceptKey . "\r\n\r\n";
+            "Sec-WebSocket-Accept: " . $acceptKey . "\r\n" .
+            "\r\n";
         // 写入socket
         socket_write($socket, $upgrade, strlen($upgrade));
 
@@ -165,7 +169,7 @@ class SocketServer {
         socket_getpeername($socket, $address, $port);
         $this->debugLog(['handShake success', $socket, $address, $port]);
 
-        // 通知客户端握手成功
+        // 通知握手成功
         $msg = ['type' => 'handShake', 'msg' => '握手成功！'];
         $msg = $this->encodeMsg(json_encode($msg));
         socket_write($socket, $msg, strlen($msg));
@@ -217,23 +221,7 @@ class SocketServer {
     }
 
     /**
-     * 编码发送信息
-     */
-    private function encodeMsg0($msg)
-    {
-        $head = str_split($msg, 125);
-        if (count($head) == 1){
-            return "\x81" . chr(strlen($head[0])) . $head[0];
-        }
-        $info = "";
-        foreach ($head as $value){
-            $info .= "\x81" . chr(strlen($value)) . $value;
-        }
-        return $info;
-    }
-
-    /**
-     * 帧数据封装
+     * 返回帧信息处理
      * @param $msg
      * @return string
      */
@@ -262,13 +250,14 @@ class SocketServer {
     }
 
     /**
-     * 解码客户端发送过来的信息
-     * @param $buffer 客户端传来的信息
-     * @return string|null 解码后的字符串
+     * 解析数据帧
+     * @param $buffer
+     * @return mixed 解码后的字符串
      */
     private function decodeMsg($buffer)
     {
         $decoded = '';
+        // 返回字符串第一个字符的 ASCII 码值
         $len = ord($buffer[1]) & 127;
         if ($len === 126) {
             $masks = substr($buffer, 4, 4);
@@ -285,7 +274,7 @@ class SocketServer {
         }
 
         return json_decode($decoded, true);
-        // return $decoded;
+        //return $decoded;
     }
 
     /**
@@ -306,7 +295,7 @@ class SocketServer {
      * 打印日志
      * @param array $info
      */
-    private function debugLog(array $info)
+    private function debugLog($info)
     {
         $time = date("Y-m-d H:i:s");
         $info = array_merge(['time' => $time], $info);
