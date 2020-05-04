@@ -9,6 +9,7 @@ class SocketServer {
     private $_socketPool = [];
     const LISTEN_SOCKET_NUM = 9; // 最大连接数
     const LOG_PATH = './log/';
+    //private $encrypt_key = 'I3K190HO-F2DA-82CZ-58VS-4A7B05B1W1EK'; // 加密的字符串
     private $encrypt_key = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'; // 加密的字符串
 
     public function __construct()
@@ -40,61 +41,73 @@ class SocketServer {
 
     public function start()
     {
+        // 对socket循环进行监听，处理数据
         while (true) {
-            try {
-                $this->run();
-            } catch (Exception $e) {
-                $this->debugLog(["code: " . $e->getCode() . ", msg: " . $e->getMessage()]);
+            $write = $except = null;
+            $sockets = array_column($this->_socketPool, 'resource');
+            /**
+             * 阻塞，直到捕获到变化
+             * socket_select ($sockets, $write = NULL, $except = NULL, NULL);
+             * $sockets可以理解为一个数组，这个数组中存放的是文件描述符。当它有变化（就是有新消息到或者有客户端连接/断开）时，socket_select函数才会返回，继续往下执行。
+             * $write是监听是否有客户端写数据，传入NULL是不关心是否有写变化。
+             * $except是$sockets里面要被排除的元素，传入NULL是监听全部。
+
+             * 最后一个参数是超时时间
+             * 如果为 0：则立即结束
+             * 如果为 n>1: 则最多在n秒后结束，如遇某一个连接有新动态，则提前返回
+             * 如果为 null：如遇某一个连接有新动态，则返回
+            */
+            $read_num = socket_select($sockets, $write, $except, 3600);
+            if ($read_num === false) {
+                $errorCode = socket_last_error();
+                $errorMsg = socket_strerror($errorCode);
+                $this->debugLog(["socket_select error", $errorCode, $errorMsg]);
+                return;
             }
-        }
-    }
 
-    private function run()
-    {
-        $write = $except = null;
-        $sockets = array_column($this->_socketPool, 'resource');
-        // 阻塞，直到捕获到变化
-        $read_num = socket_select($sockets, $write, $except, 3600);
-        if ($read_num === false) {
-            $errorCode = socket_last_error();
-            $errorMsg = socket_strerror($errorCode);
-            $this->debugLog(["socket_select error", $errorCode, $errorMsg]);
-            return;
-        }
-
-        foreach ($sockets as $socket) {
-            // 如果是当前服务器的监听连接
-            if ($socket == $this->_socket) {
-                $client = socket_accept($this->_socket);
-                if ($client === false) {
-                    $errorCode = socket_last_error();
-                    $errorMsg = socket_strerror($errorCode);
-                    $this->debugLog(["socket_accept_error", $errorCode, $errorMsg]);
-                    continue;
+            foreach ($sockets as $socket) {
+                // 如果有新的client连接进来，则
+                if ($socket == $this->_socket) {
+                    // 接受一个socket连接
+                    $client = socket_accept($this->_socket);
+                    if ($client === false) {
+                        $errorCode = socket_last_error();
+                        $errorMsg = socket_strerror($errorCode);
+                        $this->debugLog(["socket_accept_error", $errorCode, $errorMsg]);
+                        continue;
+                    }
+                    // 添加客户端套接字
+                    $this->addConnect($client);
                 }
-                // 添加客户端套接字
-                $this->addConnect($client);
-            } else {
-                // 获取客户端发送来的信息
-                $bytes = @socket_recv($socket, $buf, 2048, 0);
-                if ($bytes == false) {
-                    continue;
-                } elseif ($bytes === 0) { // 客户端关闭
-                    $recv_msg = $this->disConnect($socket);
-                } elseif ($this->_socketPool[(int)$socket]['handShake'] == false) {
-                    $this->createHandShake($socket, $buf);
-                    continue;
-                } else { // 已经握手，处理数据
-                    $recv_msg = $this->decodeMsg($buf);
+                // 否则 1. client断开socket连接；2. client发送信息
+                else {
+                    // 获取客户端发送来的信息
+                    $bytes = @socket_recv($socket, $buf, 2048, 0);
+                    if ($bytes == false) {
+                        continue;
+                    }
+                    // 如果接收的信息长度为0，则该client的socket为断开连接
+                    elseif ($bytes === 0) {
+                        $recv_msg = $this->disConnect($socket);
+                    }
+                    // 判断该socket是否已经握手，如果没有握手，则进行握手操作
+                    elseif ($this->_socketPool[(int)$socket]['handShake'] == false) {
+                        $this->createHandShake($socket, $buf);
+                        continue;
+                    }
+                    // client发送信息
+                    else {
+                        $recv_msg = $this->decodeMsg($buf);
+                    }
+
+                    $send_msg = $this->doEvents($socket, $recv_msg);
+                    // 广播
+                    $this->send_to_other($send_msg);
+
+                    // 获取client ip port
+                    socket_getpeername($socket, $address, $port);
+                    $this->debugLog(['send success', json_encode($recv_msg), $address, $port]);
                 }
-
-                $send_msg = $this->doEvents($socket, $recv_msg);
-                // 获取client ip port
-                socket_getpeername($socket, $address, $port);
-                $this->debugLog(['send success', json_encode($recv_msg), $address, $port]);
-
-                // 广播
-                $this->send_to_other($send_msg);
             }
         }
     }
@@ -182,14 +195,16 @@ class SocketServer {
      */
     public function addConnect($client)
     {
+        // 获取ip、端口
         socket_getpeername($client, $address, $port);
         $info = [
             'resource' => $client,
             'ip' => $address,
             'port' => $port,
             'userInfo' => [],
-            'handShake' => false
+            'handShake' => false, // 标记该socket没有完成握手
         ];
+        // 将新连接进来的socket存进连接池
         $this->_socketPool[intval($client)] = $info;
         $this->debugLog(['add connect', json_encode($info)]);
     }
@@ -274,7 +289,6 @@ class SocketServer {
         }
 
         return json_decode($decoded, true);
-        //return $decoded;
     }
 
     /**

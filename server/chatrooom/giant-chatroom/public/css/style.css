@@ -249,6 +249,7 @@ body {
     height: 40px;
     padding: 0 10px;
     color: #1a1a1a;
+    caret-color: green;
     border: 0;
     outline: none;
     background-color: #eceff1;

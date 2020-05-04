@@ -34,8 +34,8 @@
 <script src="public/js/index.js"></script>
 <script src="public/lib/layer/layer.js"></script>
 <script>
+    // 随机用户名
     let uname = "user" + initUid(6, 10);
-
     layer.open({
         title: '您的用户名：',
         content: uname,
@@ -45,12 +45,14 @@
         }
     });
 
+    // 随机头像
     let avatar = ['a1.jpg', 'a2.jpg', 'a3.jpg', 'a4.jpg', 'a5.jpg'];
     let headImg = "public/img/" + avatar[0];
     if (avatar[Math.round(Math.random() * 5)]) {
         headImg = "public/img/" + avatar[Math.round(Math.random() * 5)];
     }
 
+    // 创建websocket连接
     let ws = null;
     connect();
     function connect() {
@@ -69,7 +71,7 @@
     // 接收消息事件
     function onmessage(e) {
         let data = JSON.parse(e.data);
-        console.log(data);
+        // console.log(data);
         switch (data.type) {
             case 'handShake':
                 let userInfo = {'type': 'login', 'msg': uname, 'image': headImg};
@@ -91,6 +93,7 @@
         }
     }
 
+    // 关闭事件
     function onclose() {
         console.log("断开socket连接了...");
     }
@@ -154,6 +157,10 @@
     $("#cont").focus();
     function send() {
         let msg = $("#cont").val();
+        if (msg == '') {
+            layer.msg('请输入需要发送的内容');
+            return;
+        }
         let reg = new RegExp("\r\n", "g");
         msg = msg.replace(reg, "");
         sendMsg({type: "user", msg: msg});
