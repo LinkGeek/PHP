@@ -1,7 +1,11 @@
 document.querySelector('.chat[data-chat=person1]').classList.add('active-chat');
-document.querySelector('.person[data-chat=person1]').classList.add('active');
+let liDom = document.querySelector('.person[data-chat=person1]');
+if (liDom) {
+  liDom.classList.add('active');
+}
 
-var users = {
+
+let users = {
   list: document.querySelector('ul.people'),
   all: document.querySelectorAll('.left .person'),
   name: ''

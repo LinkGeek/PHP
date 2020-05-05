@@ -1,6 +1,5 @@
 <?php
 
-
 class SocketServer {
 
     private $_ip = "127.0.0.1";
@@ -81,14 +80,15 @@ class SocketServer {
                 }
                 // 否则 1. client断开socket连接；2. client发送信息
                 else {
-                    // 获取客户端发送来的信息
+                    // 读取该socket的信息，第二个参数是接收数据，第三个参数是接收数据的长度
                     $bytes = @socket_recv($socket, $buf, 2048, 0);
-                    if ($bytes == false) {
+                    // 无数据, socket not closed
+                    if ($bytes === false) {
                         continue;
                     }
-                    // 如果接收的信息长度为0，则该client的socket为断开连接
+                    // 发生了错误，socket closed
                     elseif ($bytes === 0) {
-                        $recv_msg = $this->disConnect($socket);
+                        $recv_msg = $this->deleteSocket($socket);
                     }
                     // 判断该socket是否已经握手，如果没有握手，则进行握手操作
                     elseif ($this->_socketPool[(int)$socket]['handShake'] == false) {
@@ -214,7 +214,7 @@ class SocketServer {
      * @param $socket
      * @return array
      */
-    public function disConnect($socket)
+    public function deleteSocket($socket)
     {
         $msg = [
             'type' => 'logout',
