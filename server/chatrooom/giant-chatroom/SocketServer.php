@@ -8,8 +8,6 @@ class SocketServer {
     private $_socketPool = [];
     const LISTEN_SOCKET_NUM = 9; // 最大连接数
     const LOG_PATH = './log/';
-    //private $encrypt_key = 'I3K190HO-F2DA-82CZ-58VS-4A7B05B1W1EK'; // 加密的字符串
-    private $encrypt_key = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'; // 加密的字符串
 
     public function __construct()
     {
@@ -232,7 +230,9 @@ class SocketServer {
     private function encrypt($buf)
     {
         $client_key = $this->getKey($buf);
-        return base64_encode(sha1($client_key.$this->encrypt_key,true));
+        // 全局唯一的（GUID，[RFC4122]）标识
+        $encrypt_key = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
+        return base64_encode(sha1($client_key.$encrypt_key,true));
     }
 
     /**
