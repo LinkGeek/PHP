@@ -18,22 +18,24 @@
      * 1. 冒泡排序
      * 思路分析：在要排序的一组数中，对当前还未排好的序列，从前往后对相邻的两个数依次进行比较和调整，
      * 让较大的数往下沉，较小的往上冒。即，每当两相邻的数比较后发现它们的排序与排序要求相反时，就将它们互换。
+     * 总结：
+     * 1. 外层循环要元素数 - 1次。负责找出最大值。
+     * 2. 内层循环逐层递减一次。负责俩俩相比较，交换元素位置。
     */
     function bubbleSort($arr) {
         $len = count($arr);
         for ($i=0; $i<$len-1; $i++) {
             for($j=0; $j<$len-$i-1; $j++) {
                 if ($arr[$j] > $arr[$j+1]) {
-                    $tmp = $arr[$j];
-                    $arr[$j] = $arr[$j+1];
-                    $arr[$j+1] = $tmp;
+                    list($arr[$j], $arr[$j+1]) = [$arr[$j+1], $arr[$j]];
                 }
             }
         }
         return $arr;
     }
-    //$arr1 = bubbleSort($arr);
-    //p($arr1);
+    $arr = [8, 9, 3, 6, 1, 4];
+    $arr1 = bubbleSort($arr);
+    // p($arr1);
 
     /**
      * 2. 快速排序
@@ -47,8 +49,7 @@
         }
 
         $base_num = $arr[0];
-        $left_arr = array();
-        $right_arr = array();
+        $left_arr = $right_arr = [];
         for ($i=1; $i<$len; $i++) {
             if ($arr[$i] < $base_num) {
                 $left_arr[] = $arr[$i];
@@ -57,9 +58,7 @@
             }
         }
 
-        $left_arr = quickSort($left_arr);
-        $right_arr = quickSort($right_arr);
-        return array_merge($left_arr, array($base_num), $right_arr);
+        return array_merge(quickSort($left_arr), [$base_num], quickSort($right_arr));
     }
     //$arr2 = quickSort($arr);
     //p($arr2);
@@ -71,12 +70,19 @@
      */
     function selectSort($arr) {
         $len = count($arr);
-        for ($i=0; $i<$len; $i++) {
-            $min = $i;
-            for ($k=0; $k<$len-$i; $k++) {
-
-            }
+        if ($len <= 1) {
+            return $arr;
         }
+        for ($i = 0; $i < $len - 1; $i++) {
+            $min = $i;
+            for ($j = $i+1; $j < $len; $j++) {
+                if ($arr[$j] < $arr[$min]) {
+                    $min = $j;
+                }
+            }
+            list($arr[$min], $arr[$i]) = [$arr[$i], $arr[$min]];
+        }
+        return $arr;
     }
 
     /**
@@ -86,10 +92,20 @@
      */
     function insertSort($arr) {
         $len = count($arr);
-        for ($i=1; $i<$len; $i++) {
-
+        if ($len <= 1) {
+            return $arr;
         }
+        for ($i=0; $i<$len-1; $i++) {
+            for ($j=$i+1; $j>0; $j--) {
+                if ($arr[$j-1] > $arr[$j]) {
+                    list($arr[$j], $arr[$j-1]) = [$arr[$j-1], $arr[$j]];
+                }
+            }
+        }
+        return $arr;
     }
+    $arr = [5,1,7,2,8,4];
+    //p(insertSort($arr));
 
     /**
      * 5、给出一个字符串，返回里面连续字母的个数，比如：abbcddde,返回 1a2b1c3de;
@@ -126,4 +142,4 @@
         }
         return $arr[$i-1];
     }
-    p(selectKing(6, 8));
+    p(selectKing(8, 6));
