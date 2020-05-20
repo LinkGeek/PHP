@@ -30,10 +30,6 @@ while (true) {
     echo "received: $buf from remote address $remote_ip and remote port $remote_port\n";
 
     // send back
-<<<<<<< HEAD
-    socket_sendto($socket, "OK!" . $buf, 100, 0, $remote_ip, $remote_port);
-=======
     socket_sendto($socket, "OK", 100, 0, $remote_ip, $remote_port);
->>>>>>> 0ab3472048187ba738756f425abfe570b10abff9
 }
 socket_close($socket);

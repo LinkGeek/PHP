@@ -133,7 +133,7 @@ abstract class BloomFilterRedis
 
     protected $hashFunction;
 
-    public function __construct($config, $id)
+    public function __construct()
     {
         if (!$this->bucket || !$this->hashFunction) {
             throw new Exception("需要定义bucket和hashFunction", 1);
@@ -160,12 +160,18 @@ abstract class BloomFilterRedis
      */
     public function add($string)
     {
-        $pipe = $this->Redis->multi();
+        /*$pipe = $this->Redis->multi();
         foreach ($this->hashFunction as $function) {
             $hash = $this->Hash->$function($string);
             $pipe->setBit($this->bucket, $hash, 1);
         }
-        return $pipe->exec();
+        return $pipe->exec();*/
+
+        foreach ($this->hashFunction as $key=>$function) {
+            $hash = $this->Hash->$function($string);
+            $this->Redis->setBit($this->bucket.$key, $hash, 1);
+        }
+        return true;
     }
 
     /**
@@ -210,7 +216,7 @@ class FilterRepeatedComments extends BloomFilterRedis
 }
 
 var_dump((new FilterRepeatedComments())->add('abc')); //true
-var_dump((new FilterRepeatedComments())->add('bcd'));//true
-var_dump((new FilterRepeatedComments())->add('dfg'));//true
-var_dump((new FilterRepeatedComments())->exists('dfg'));//true
-var_dump((new FilterRepeatedComments())->exists('dgg'));//false
+var_dump((new FilterRepeatedComments())->add('bcd')); //true
+var_dump((new FilterRepeatedComments())->add('dfg')); //true
+var_dump((new FilterRepeatedComments())->exists('dfg')); //true
+var_dump((new FilterRepeatedComments())->exists('dgg')); //false
