@@ -1,13 +1,13 @@
 <?php
 
-$http = new swoole_http_server("0.0.0.0", 9509);   // 监听 9509
+$http = new Swoole\Http\Server("0.0.0.0", 9509);   // 监听 9509
 
 $http->set(array(
     'reactor_num' => 2,  //reactor thread num
     'worker_num' => 4    //worker process num
 ));
 
-$http->on('request', function (swoole_http_request $request, swoole_http_response $response) {
+$http->on('request', function ($request, $response) {
     $uniqid = uniqid('uid-', TRUE);    // 模拟唯一用户ID
     $redis = new Redis();
     $redis->connect('127.0.0.1', 6379);    // 连接 redis

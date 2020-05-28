@@ -25,5 +25,6 @@ class Card {
 }
 
 $card = new Card();
-$age = $card->getIdCardAge('450422199212283872');
+$cardNo = 144422199412168327;
+$age = $card->getIdCardAge($cardNo);
 var_dump($age);
