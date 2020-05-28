@@ -30,7 +30,7 @@ class NearPeople {
     }
 
     /**
-     * 地址的经纬度信息
+     * 地址的经纬度信息 sorted set类型
      * @param $key
      * @param $member
      * @return array
@@ -38,6 +38,17 @@ class NearPeople {
     function getLocation($key, $member)
     {
         return $this->oRedis->geopos($key, $member);
+    }
+
+    /**
+     * 返回一个或多个位置元素的 Geohash 表示
+     * @param $key
+     * @param $member
+     * @return array
+     */
+    function getGeoHash($key, $member)
+    {
+        return $this->oRedis->geohash($key, $member);
     }
 
     /**
@@ -131,8 +142,10 @@ $result = $cl->twoPointsDistance('location', 'a', 'b');
 
 // 指定范围内
 $result = $cl->getPointsNear('location', 117.175571, 31.846746, 10);
-var_dump($result);
+//var_dump($result);
 
 // 查找附近人
 $result = $cl->near('location', 'a', 5);
 //var_dump($result);
+
+var_dump($cl->getGeoHash('location', 'a'));
