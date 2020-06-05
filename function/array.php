@@ -47,6 +47,27 @@ $online = [1,2,3];
 $onlineMap = array_intersect_key($gameMap, array_flip($online));
 print_r($onlineMap);
 
+
+$arr = ['car'=>'BMW','bicycle','airplane'];
+$str1 = current($arr); //初始指向插入到数组中的第一个单元。
+$str2 = next($arr);    //将数组中的内部指针向前移动一位
+$str3 = current($arr); //指针指向它“当前的”单元
+$str4 = prev($arr);    //将数组的内部指针倒回一位
+$str5 = end($arr);     //将数组的内部指针指向最后一个单元
+reset($arr);           //将数组的内部指针指向第一个单元
+$str6 = current($arr);
+$key1 = key($arr);     //从关联数组中取得键名
+
+echo $str1 . PHP_EOL; //BMW
+echo $str2 . PHP_EOL; //bicycle
+echo $str3 . PHP_EOL; //bicycle
+echo $str4 . PHP_EOL; //BMW
+echo $str5 . PHP_EOL; //airplane
+echo $str6 . PHP_EOL; //BMW
+echo $key1 . PHP_EOL; //car
+var_dump($arr);   //原数组不变
+
+
 /**
  * PHP数组的交集
  * array_intersect()函数是求两个数组的交集，返回一个交集共有元素的数组（只是数组值的比较）

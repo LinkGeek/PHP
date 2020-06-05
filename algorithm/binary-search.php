@@ -32,6 +32,10 @@ function binary_search($arr, $num)
     return false;
 }
 
+$arr = [1,3,6,9,13,18,19,29,38,47,51,56,58,59,60,63,65,69,70,71,73,75,76,77,79,89];
+$find_key = binary_search($arr, 73);
+print_r($find_key);
+
 /**
  * 递归实现
  * @param $arr
@@ -65,10 +69,6 @@ function binary_search_recursion($arr, $num, $start, $end)
         return $middle;
     }
 }
-
-$arr = [1,3,6,9,13,18,19,29,38,47,51,56,58,59,60,63,65,69,70,71,73,75,76,77,79,89];
-$find_key = binary_search($arr, 73);
-print_r($find_key);
 
 $find_key_r = binary_search_recursion($arr, 73, 0, count($arr));
 print_r($find_key_r);

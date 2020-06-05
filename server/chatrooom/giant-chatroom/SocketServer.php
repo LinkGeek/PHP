@@ -265,25 +265,47 @@ class SocketServer {
     }
 
     /**
+     * 编码过程
+     */
+    public function encode($buffer) {
+        $length = strlen($buffer);
+        if($length <= 125) {
+            return "\x81".chr($length).$buffer;
+        } else if($length <= 65535) {
+            return "\x81".chr(126).pack("n", $length).$buffer;
+        } else {
+            return "\x81".chr(127).pack("xxxxN", $length).$buffer;
+        }
+    }
+
+    /**
      * 解析数据帧
      * @param $buffer
      * @return mixed 解码后的字符串
      */
     private function decodeMsg($buffer)
     {
-        $decoded = '';
-        // 返回字符串第一个字符的 ASCII 码值
+        $decoded = null;
+        // $opcode = ord(substr($msg, 0, 1)) & 0x0F;
+        // $payloadlen = ord(substr($msg, 1, 1)) & 0x7F;
+        // $ismask = (ord(substr($msg, 1, 1)) & 0x80) >> 7;
+
+        // 读取数据帧第二个字节, 和 0111 1111(127) 按位与(&)运算取得后7位的值就是 Payload data length属性
+        // ord — 转换字符串第一个字节为 0-255 之间的值
         $len = ord($buffer[1]) & 127;
-        if ($len === 126) {
+        if ($len === 126) { // 获取的值为126，表示后两个字节用于表示数据长度
+            //$extend_payload_len = substr($buffer, 2, 4);
             $masks = substr($buffer, 4, 4);
             $data = substr($buffer, 8);
-        } else if ($len === 127) {
+        } else if ($len === 127) { // 处理特殊长度127
             $masks = substr($buffer, 10, 4);
             $data = substr($buffer, 14);
         } else {
             $masks = substr($buffer, 2, 4);
             $data = substr($buffer, 6);
         }
+        // websocket规定客户端发送给服务端的数据应当经过网段处理，服务器端发送给客户端的数据无需网段处理,
+        // 解码算法: 将Payload data的原始数据的每位字符角标与4取模，然后将这个原始字符与上面取模后相应位置的网段字符进行卷积运算即可
         for ($index = 0; $index < strlen($data); $index++) {
             $decoded .= $data[$index] ^ $masks[$index % 4];
         }

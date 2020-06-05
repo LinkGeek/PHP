@@ -1,5 +1,7 @@
 <?php
 
+// PHP 并发场景的几种解决方案: 利用 Redis 事务特征
+
 $http = new Swoole\Http\Server("0.0.0.0", 9509);   // 监听 9509
 
 $http->set(array(

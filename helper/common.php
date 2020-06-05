@@ -79,8 +79,6 @@ function getIp() {
         $ip = "unknown";
     return $ip;
 }
-//echo getIp();
-
 
 /**
  * PHP列出目录下的文件名
