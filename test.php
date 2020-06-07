@@ -1,5 +1,5 @@
 <?php
-
+echo phpinfo();
 //var_dump(PHP_INT_MIN);
 //var_dump(-9223372036854775808);
 //var_dump(gethostbyname('www.jiatengfei.com'));
@@ -17,11 +17,11 @@
 //    echo 'false';
 //}
 
-$users = array(2, 3);
-$user_id = 1;
-in_array($user_id, $users) || array_unshift($users, $user_id);
-
-print_r($users);
-array_unshift($users, array(5,6));
-print_r($users);
+//$users = array(2, 3);
+//$user_id = 1;
+//in_array($user_id, $users) || array_unshift($users, $user_id);
+//
+//print_r($users);
+//array_unshift($users, array(5,6));
+//print_r($users);
 
