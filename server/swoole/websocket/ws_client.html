@@ -6,21 +6,22 @@
 </head>
 <body>
 <script>
-    let ws = new WebSocket("ws://127.0.0.1:9504");
-    ws.onopen = function (evt) {
-        console.log("连接服务器");
+    let wsServer = 'ws://127.0.0.1:9502';
+    let websocket = new WebSocket(wsServer);
+    websocket.onopen = function (evt) {
+        console.log("Connected to WebSocket server.");
     };
 
-    ws.onclose = function (evt) {
-        console.log("断开连接");
+    websocket.onclose = function (evt) {
+        console.log("Disconnected");
     };
 
-    ws.onmessage = function (evt) {
-        console.log('接收来自服务器的消息：' + evt.data);
+    websocket.onmessage = function (evt) {
+        console.log('Retrieved data from server: ' + evt.data);
     };
 
-    ws.onerror = function (evt, e) {
-        console.log('错误了：' + evt.data);
+    websocket.onerror = function (evt, e) {
+        console.log('Error occured: ' + evt.data);
     };
 </script>
 </body>

@@ -108,7 +108,7 @@
     //p(insertSort($arr));
 
     /**
-     * 5、给出一个字符串，返回里面连续字母的个数，比如：abbcddde,返回 1a2b1c3de;
+     * 5、给出一个字符串，返回里面连续字母的个数，比如：abbcddde,返回 1a2b1c3d1e;
      */
     function strCount($str) {
         $arr = str_split($str);
