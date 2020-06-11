@@ -2,7 +2,7 @@
 
 // HTTP服务器
 
-$http = new Swoole\Http\Server("0.0.0.0", 9503);
+$http = new Swoole\Http\Server("0.0.0.0", 9505);
 
 // request
 $http->on("request", function ($request, $response) {
