@@ -23,3 +23,13 @@ for ($i=0; $i<=10; $i++) {
         }
     }
 }
+
+# 1,1,2,3,5,8,13,21,34.....
+function recursionNum($arr, $pos) {
+    for ($i=2; $i<=$pos; $i++) {
+        $arr[] = $arr[$i-2] + $arr[$i-1];
+    }
+    return $arr;
+}
+$arr = [1, 1];
+var_dump(recursionNum($arr, 30));

@@ -15,16 +15,20 @@ $workers = [];
 
 for($i=0; $i<6; $i++) {
     $process = new Process(function (Process $proc) use($i, $urls) {
+        //获取子进程执行的结果
         $cont = curl($urls[$i]);
-        //echo $cont. PHP_EOL;
+        //将子进程执行的结果存入管道
         $proc->write($cont. PHP_EOL);
-    }, true);
+    }, true); //true表明不输出屏幕，写入管道，从管道中读取
 
+    //启动成功，返回子进程id
     $pid = $process->start();
+    //从管道中读取进程执行的结果
     $workers[$pid] = $process;
 }
 
 foreach ($workers as $proc) {
+    //从管道中读取子进程执行的结果
     echo $proc->read(). PHP_EOL;
 }
 
@@ -35,7 +39,7 @@ foreach ($workers as $proc) {
  */
 function curl($url) {
     sleep(1);
-    return $url.', success'.PHP_EOL;
+    return strtoupper($url);
 }
 echo date("Y-m-d H:i:s").PHP_EOL;
 
