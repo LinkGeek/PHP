@@ -28,6 +28,7 @@ function niu($year) {
     for ($i = 1; $i <= $year; $i++) {
         if ($i >= 4 && $i < 15) {
             $num++;
+            //echo "i: $i, num: $num".PHP_EOL;
             niu($year-$i); // 递归计算小牛$num，成长年数$year-$i
         } elseif ($i == 20) { // 20岁减一
             $num--;
@@ -35,6 +36,7 @@ function niu($year) {
     }
     return $num;
 }
+//echo niu(5);
 
 /**
  * 杨辉三角
@@ -59,6 +61,22 @@ function funYH($n=3){
     }
 }
 //funYH(5);
+
+/**
+ * 9X9口诀
+ */
+function doubleNight()
+{
+    for ($i=1; $i<=9; $i++) {
+        for ($j=1; $j<= $i; $j++) {
+            $str = ($j*$i) >= 10 ? ' ' : " &nbsp;";
+            echo $j.'*'.$i.'='.$j*$i. $str;
+            echo ' ';
+        }
+        echo '<br/>';
+    }
+}
+//doubleNight();
 
 /**
  * 奇异算法
@@ -168,4 +186,69 @@ $arr = array(
     array('id'=>7,'name'=>'超级本','pid'=>3),
     array('id'=>8,'name'=>'游戏本','pid'=>3),
 );
-var_dump(getChild($arr));
+//var_dump(getChild($arr));
+
+/**
+ * 随机输入一个数字能查询到对应的数据区间
+ */
+function regionSearch($arr, $num) {
+    $len = count($arr);
+    $low = 0;
+    $high = $len - 1;
+    while ($low <= $high) {
+        //$mid = intval(($low + $high) / 2);
+        $mid = ($low + $high) / 2;
+        var_dump($low, $high, $mid, intval($mid));
+        echo "===========".PHP_EOL;
+        $mid = intval($mid);
+        if ($arr[$mid] >= $num) {
+            $high = $mid - 1;
+        } elseif($arr[$mid] <= $num) {
+            $low = $mid + 1;
+        }
+    }
+    //var_dump($low, $high);
+
+    return "在区间 $arr[$high] 到 $arr[$low] 之间";
+}
+$arr = [1, 50, 100, 150, 200];
+//echo regionSearch($arr, 80);
+
+/**
+ * 洗牌算法
+ */
+function wash_card($card_num=54) {
+    $cards = [];
+    $tmp = range(1, $card_num);
+    for ($i=0; $i<$card_num; $i++) {
+        $index = rand(0, $card_num-$i-1);
+        $cards[$i] = $tmp[$index];
+        unset($tmp[$index]);
+        $tmp = array_values($tmp);
+    }
+    return $cards;
+}
+//var_dump(wash_card());
+
+/**
+ * 区级质数个数
+ * 判断素数的方法：用一个数分别去除2到sqrt(这个数)，如果能被整除，
+ * 则表明此数不是素数，反之是素数
+ */
+function getPrimeNum($start=101, $end=200) {
+    $arr = [];
+    for ($i=$start; $i<=$end; $i++) {
+        $flag = true;
+        for ($j=2; $j<=sqrt($i); $j++) {
+            if ($i % $j == 0) {
+                $flag = false;
+            }
+        }
+        if ($flag) {
+            $arr[] = $i;
+        }
+    }
+    return $arr;
+}
+//var_dump(getPrimeNum());
+
