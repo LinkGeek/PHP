@@ -94,4 +94,4 @@ function strCount($str) {
 }
 //var_dump(strCount('abbcddde'));
 
-var_dump(str_split('18446744073709551615'));
+//var_dump(str_split('18446744073709551615'));

@@ -1,9 +1,26 @@
 <?php
 
-// 二分查找算法
+/**
+ * 顺序查找
+ * @param $arr
+ * @param $k
+ * @return int
+ */
+function seq_sch($arr,$k){
+    for ($i=0, $n = count($arr); $i < $n; $i++) {
+        if ($arr[$i] == $k) {
+            break;
+        }
+    }
+
+    if($i < $n){
+        return $i;
+    }
+    return -1;
+}
 
 /**
- * 循环实现
+ * 二分查找算法 -- 循环
  * @param $arr
  * @param $num
  * @return bool|int
@@ -37,7 +54,7 @@ $find_key = binary_search($arr, 73);
 print_r($find_key);
 
 /**
- * 递归实现
+ * 二分查找算法 -- 递归
  * @param $arr
  * @param $num
  * @param $start

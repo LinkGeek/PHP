@@ -17,7 +17,7 @@ function selectKing($n, $m) {
     }
     return current($monkeys);
 }
-//echo selectKing(8, 6);
+//echo selectKing(10, 7).PHP_EOL;
 
 /**
  * 有一母牛，到4岁可生育，每年一头，所生均是一样的母牛，
@@ -121,16 +121,37 @@ function getAllFile($dir) {
 /**
  * 从一个标准的Url提取出文件的扩展名
  */
-function getUrlExt($url) {
-    $arr = parse_url($url);
-    //var_dump($arr);
-    $file = basename($arr['path']);
-    //var_dump($file);
+function getUrlExt($url)
+{
+    $arr = parse_url($url); // parse_url解析一个 URL 并返回一个关联数组，包含在 URL 中出现的各种组成部分
+    // 'scheme' => string 'http' (length=4)
+    // 'host' => string 'www.php100.com' (length=14)
+    // 'path' => string '/9/20/22/87462.html' (length=19)
+    $file = basename($arr['path']); // basename函数返回路径中的文件名部分
     $ext = explode('.', $file);
     return $ext[count($ext)-1];
 }
-$url = 'http://www.php100.com/9/20/22/87462.html';
-//echo getUrlExt($url);
+//echo getUrlExt('http://www.php100.com/9/20/22/87462.html');
+
+/**
+ * 截取文件名后缀
+ * @param $file
+ */
+function getFileExt($file) {
+    // 1.
+    echo substr(strrchr($file, '.'), 1);
+
+    // 2.
+    echo substr($file, strpos($file, '.')+1);
+
+    // 3.
+    $arr = explode('.', $file);
+    echo $arr[count($arr)-1];
+    echo end($arr);
+
+    // 4.
+    echo strrev(explode('.', $file)[0]);
+}
 
 /**
  * 斐波那契数列
@@ -176,6 +197,18 @@ function getChild($arr, $pid=0, $level=0) {
     }
     return $tree;
 }
+
+function tree($list, $pid=0) {
+    $tree = [];
+    foreach ($list as $item) {
+        if ($item['pid'] == $pid) {
+            $item['children'] = tree($list, $item['id']);
+            $tree[] = $item;
+        }
+    }
+    return $tree;
+}
+
 $arr = array(
     array('id'=>1,'name'=>'电脑','pid'=>0),
     array('id'=>2,'name'=>'手机','pid'=>0),
@@ -186,7 +219,7 @@ $arr = array(
     array('id'=>7,'name'=>'超级本','pid'=>3),
     array('id'=>8,'name'=>'游戏本','pid'=>3),
 );
-//var_dump(getChild($arr));
+//var_dump(tree($arr));
 
 /**
  * 随机输入一个数字能查询到对应的数据区间
@@ -252,3 +285,26 @@ function getPrimeNum($start=101, $end=200) {
 }
 //var_dump(getPrimeNum());
 
+/**
+ * 10 瓶水，其中一瓶有毒，小白鼠喝完有毒的水之后，会在 24 小时后死亡，
+ * 问：最少用几只小白鼠可以在 24 小时后找到具体是哪一瓶水有毒。
+ * 思路：一只老鼠有两种状态，死活，对应01，假设老鼠的个数为 A，则有 2^A种状态；
+ */
+
+/**
+ 0 0 0 1  1
+ 0 0 1 0  2
+ 0 0 1 1  3
+ 0 1 0 0  4
+ 0 1 0 1  5
+ 0 1 1 0  6
+ 0 1 1 1  7
+ 1 0 0 0  8
+ 1 0 0 1  9
+ 1 0 1 0  10
+
+ A B C D
+
+将1到10瓶水编号，转化为二进制就是0001，0010，0011....，1表示喝，0表示不喝，四只老鼠A/B/C/D分别去喝对应那一列数字为1的水。
+如果A死了，其他三只老鼠没死，那就是第八瓶有毒；如果A和C死了，那就是第十瓶有毒。
+ */
