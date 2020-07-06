@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * php屏蔽关键字
  * @param $str
@@ -81,18 +80,83 @@ function getIp() {
 }
 
 /**
- * PHP列出目录下的文件名
- * @param $DirPath
+ * 遍历一个文件夹下的所有文件和子文件夹
+ * @param $dir
+ * @return array
  */
-function listDirFiles($DirPath){
-    if($dir = opendir($DirPath)){
-        while(($file = readdir($dir)) !== false){
-            if(!is_dir($DirPath.$file)){
-                echo "filename: $file<br />";
+function my_scandir($dir)
+{
+    $files = [];
+
+    if(!is_dir($dir)) {
+        return $files;
+    }
+
+    $handle = opendir($dir);
+    if ($handle) {
+        while(false !== ($file = readdir($handle)))
+        {
+            if($file != '.' && $file != '..' && $file != '.svn'){
+                $filename = $dir . "/"  . $file;
+                if(is_file($filename)){
+                    $files[] = $filename;
+                }else{
+                    $files[$file] = my_scandir($filename);
+                }
             }
         }
+
+        closedir($handle);
+    }
+
+    return $files;
+}
+//my_scandir('./server');
+
+/**
+ * 无限分类
+ * @param $arr
+ * @param int $pid
+ * @param int $level
+ * @return array
+ */
+function tree($arr, $pid=0, $level=0){
+    static $list = array();
+    foreach ($arr as $v) {
+        //如果是顶级分类，则将其存到$list中，并以此节点为根节点，遍历其子节点
+        if ($v['pid'] == $pid) {
+            $v['level'] = $level;
+            $list[] = $v;
+            tree($arr, $v['id'],$level+1);
+        }
+    }
+
+    return $list;
+}
+$arr = array(
+    array('id'=>1,'name'=>'电脑','pid'=>0),
+    array('id'=>3,'name'=>'笔记本','pid'=>1),
+    array('id'=>4,'name'=>'台式机','pid'=>1),
+    array('id'=>7,'name'=>'超级本','pid'=>3),
+    array('id'=>8,'name'=>'游戏本','pid'=>3),
+
+    array('id'=>2,'name'=>'手机','pid'=>0),
+    array('id'=>5,'name'=>'智能机','pid'=>2),
+    array('id'=>6,'name'=>'功能机','pid'=>2),
+);
+//var_dump(tree($arr));
+
+/**
+ * 判断一个字符串是否是合法的日期模式：2007-03-13 13:13:13
+ * @param $date
+ * @return bool
+ */
+function checkDateTime($date) {
+    if (date('Y-m-d H:i:s', strtotime($date)) == $date) {
+        return true;
+    } else {
+        return false;
     }
 }
-
-listDirFiles('../server/');
-
+$data = '2015-06-40 13:35:42';
+var_dump(checkDateTime($data));//bool(true)

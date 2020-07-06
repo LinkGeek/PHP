@@ -20,7 +20,7 @@ $str = 'abc';
 $arr = str_split($str);
 
 // 调用perm函数
-perm($arr, 0,count($arr) - 1);
+//perm($arr, 0,count($arr) - 1);
 
 /**
  * 定义perm函数
@@ -54,3 +54,7 @@ function swap(&$a, &$b)
     $a = $b;
     $b = $c;
 }
+
+
+echo strlen(' hello你好世界');
+

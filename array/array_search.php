@@ -36,4 +36,21 @@ class Test {
 }
 
 $obj = new Test();
-var_dump($obj->test());
+//var_dump($obj->test());
+
+/**
+ * 查找重复的数
+ */
+function mop($arr) {
+    $arr = array_count_values($arr); //统计数组中所有值出现的次数：
+    asort($arr); //升序
+    $findNum =  end($arr); //end() 函数将内部指针指向数组中的最后一个元素，并输出
+    foreach ($arr as $k => $v) {
+        if ($v != $findNum) {  //判断$v 是否等于出现最多的次数
+            unset($arr[$k]); //unset() — 释放给定的变量
+        }
+    }
+    return array_keys($arr);
+}
+$testArr = array(1,2,3,1);
+var_dump(mop($testArr));

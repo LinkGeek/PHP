@@ -25,6 +25,7 @@ class Db {
      * 防止反序列化
      */
     private function __wakeup(){
+
     }
 
     public static function getInstance(){

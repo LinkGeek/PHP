@@ -101,24 +101,6 @@ function strSet($str) {
 //echo strSet('eacdbcb');
 
 /**
- * 遍历一个文件下的所有文件和子文件夹下的文件
- */
-function getAllFile($dir) {
-    if ($dh = opendir($dir)) {
-        while (($file = readdir($dh)) != false) {
-            if ($file != '.' && $file != '..') {
-                if (is_dir($dir.'/'.$file)) {
-                    getAllFile($dir.'/'.$file);
-                } else {
-                    echo $dir.'/'.$file. "<br/>";
-                }
-            }
-        }
-    }
-}
-//getAllFile('/data/www/github/php');
-
-/**
  * 从一个标准的Url提取出文件的扩展名
  */
 function getUrlExt($url)

@@ -33,23 +33,8 @@ function bubbleSort($arr) {
     }
     return $arr;
 }
-
-function maopao($arr){
-    $len = count($arr);
-    for($k=0; $k<=$len; $k++){
-        for($j=$len-1; $j>$k; $j--){
-            if($arr[$j] < $arr[$j-1]){
-                $temp = $arr[$j];
-                $arr[$j] = $arr[$j-1];
-                $arr[$j-1] = $temp;
-            }
-        }
-    }
-    return $arr;
-}
-
 $arr = [8, 9, 3, 6, 1, 4];
-p(bubbleSort($arr));
+//p(bubbleSort($arr));
 
 /**
  * 2. 快速排序
@@ -87,14 +72,20 @@ function selectSort($arr) {
     if ($len <= 1) {
         return $arr;
     }
+
+    //双重循环完成，外层控制轮数，内层控制比较次数
     for ($i = 0; $i < $len - 1; $i++) {
-        $min = $i;
+        $p = $i;
         for ($j = $i+1; $j < $len; $j++) {
-            if ($arr[$j] < $arr[$min]) {
-                $min = $j;
+            //比较，发现更小的,记录下最小值的位置；并且在下次比较时采用已知的最小值进行比较。
+            if ($arr[$j] < $arr[$p]) {
+                $p = $j;
             }
         }
-        list($arr[$min], $arr[$i]) = [$arr[$i], $arr[$min]];
+        //已经确定了当前的最小值的位置，保存到$p中。如果发现最小值的位置与当前假设的位置$i不同，则位置互换即可。
+        if($p != $i) {
+            list($arr[$p], $arr[$i]) = [$arr[$i], $arr[$p]];
+        }
     }
     return $arr;
 }
@@ -126,7 +117,7 @@ function insertSort2($arr) {
     for ($i=1; $i<$len; $i++) {
         $tmp = $arr[$i];
         //内层循环控制，比较并插入
-        for($j=$i-1;$j>=0;$j--) {
+        for($j=$i-1; $j>=0; $j--) {
             if($tmp < $arr[$j]) {
                 //发现插入的元素要小，交换位置，将后边的元素与前面的元素互换
                 $arr[$j+1] = $arr[$j];
@@ -161,3 +152,61 @@ function strCount($str) {
     return $ret;
 }
 //p(strCount('abbcddde')); // 1a2b1c3d1e
+
+/**
+ * 桶排序
+ * @param $arr
+ * @return array
+ */
+function bucket_sort($arr){
+    $result=[];
+    $length=count($arr);
+    //入桶
+    for($i=0,$max=$arr[$i];$i<$length;$i++){
+        if ($max<$arr[$i]) {
+            $max=$arr[$i];
+        }
+        $bucket[$arr[$i]]=[];
+        array_push($bucket[$arr[$i]],$arr[$i]);
+    }
+    //出桶
+    for($i=0;$i<=$max;$i++){
+        if(!empty($bucket[$i])){
+            $l=count($bucket[$i]);
+            for ($j=0; $j <$l ; $j++) {
+                $result[]=$bucket[$i][$j];
+            }
+        }
+    }
+    return $result;
+}
+
+/**
+ * 第一种桶排序的办法，每个桶存储相同值的数据
+ *
+ */
+function bucketSort($nonSortArray){
+    //选出桶中最大值和最小值
+    $min = min($nonSortArray);
+    $max = max($nonSortArray);
+
+    //生成桶,默认每个桶中数据只有0个
+    $bucket = array_fill($min, $max-$min+1, 0);
+
+    //数据入桶
+    foreach ($nonSortArray as $value){
+        $bucket[$value]++; //对应桶的个数计增
+    }
+
+    //数据出桶
+    $sortArray = array();
+    foreach ($bucket as $k => $v){
+        for($i=1; $i<=$v; $i++){
+            $sortArray[] = $k; //每个桶中的数据个数
+        }
+    }
+    return $sortArray;
+}
+$array = array(58,5,96,75,4,69,82,35,64,15,23,69,8,5,2,52);
+$arr = bucketSort($array);
+echo implode(",", $arr);
